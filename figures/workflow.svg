@@ -1,0 +1,43 @@
+<svg width="800" height="520" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+  <rect width="800" height="520" fill="#f8f9fa" rx="12"/>
+  <text x="400" y="38" text-anchor="middle" font-size="18" font-weight="bold" fill="#1F4E79">NCBI Datasets CLI — Download Workflow</text>
+  <rect x="60" y="65" width="200" height="60" rx="8" fill="#1F4E79"/>
+  <text x="160" y="89" text-anchor="middle" font-size="13" font-weight="bold" fill="white">1. Install</text>
+  <text x="160" y="108" text-anchor="middle" font-size="11" fill="#B8D4F0">conda install ncbi-datasets-cli</text>
+  <line x1="260" y1="95" x2="308" y2="95" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="310" y="65" width="200" height="60" rx="8" fill="#2E75B6"/>
+  <text x="410" y="89" text-anchor="middle" font-size="13" font-weight="bold" fill="white">2. Preview</text>
+  <text x="410" y="108" text-anchor="middle" font-size="11" fill="#B8D4F0">datasets summary genome taxon</text>
+  <line x1="510" y1="95" x2="558" y2="95" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="560" y="65" width="180" height="60" rx="8" fill="#2E75B6"/>
+  <text x="650" y="89" text-anchor="middle" font-size="13" font-weight="bold" fill="white">3. Download</text>
+  <text x="650" y="108" text-anchor="middle" font-size="11" fill="#B8D4F0">datasets download genome</text>
+  <line x1="650" y1="125" x2="650" y2="163" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="560" y="165" width="180" height="60" rx="8" fill="#0F6E56"/>
+  <text x="650" y="189" text-anchor="middle" font-size="13" font-weight="bold" fill="white">4. Unzip</text>
+  <text x="650" y="208" text-anchor="middle" font-size="11" fill="#9FE1CB">unzip output.zip -d genomes/</text>
+  <line x1="650" y1="225" x2="650" y2="263" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="560" y="265" width="180" height="60" rx="8" fill="#0F6E56"/>
+  <text x="650" y="289" text-anchor="middle" font-size="13" font-weight="bold" fill="white">5. Deduplicate</text>
+  <text x="650" y="308" text-anchor="middle" font-size="11" fill="#9FE1CB">Keep GCF, remove GCA dups</text>
+  <line x1="650" y1="325" x2="650" y2="363" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="560" y="365" width="180" height="60" rx="8" fill="#854F0B"/>
+  <text x="650" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="white">6. Metadata</text>
+  <text x="650" y="408" text-anchor="middle" font-size="11" fill="#FAC775">extract_metadata.py</text>
+  <line x1="558" y1="395" x2="442" y2="395" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="260" y="365" width="180" height="60" rx="8" fill="#993C1D"/>
+  <text x="350" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="white">7. QC (FastANI)</text>
+  <text x="350" y="408" text-anchor="middle" font-size="11" fill="#F5C4B3">fastANI all-vs-all</text>
+  <line x1="258" y1="395" x2="182" y2="395" stroke="#555" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="60" y="365" width="120" height="60" rx="8" fill="#534AB7"/>
+  <text x="120" y="389" text-anchor="middle" font-size="13" font-weight="bold" fill="white">8. Final List</text>
+  <text x="120" y="408" text-anchor="middle" font-size="11" fill="#CECBF6">genome_list.txt</text>
+  <rect x="60" y="460" width="680" height="44" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/>
+  <text x="400" y="478" text-anchor="middle" font-size="12" font-weight="bold" fill="#0C447C">Output Files</text>
+  <text x="400" y="496" text-anchor="middle" font-size="11" fill="#185FA5">genome_list.txt  |  metadata_table.tsv  |  ANI_heatmap.pdf  |  quality_report.tsv</text>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+</svg>

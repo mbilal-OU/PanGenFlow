@@ -1,0 +1,30 @@
+name: Test Scripts
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install pandas numpy
+
+      - name: Test extract_metadata.py syntax
+        run: python3 -m py_compile scripts/extract_metadata.py
+
+      - name: Test deduplicate_genomes.py syntax
+        run: python3 -m py_compile scripts/deduplicate_genomes.py
+
+      - name: Test batch_download.sh syntax
+        run: bash -n scripts/batch_download.sh

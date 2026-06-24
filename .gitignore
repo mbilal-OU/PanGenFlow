@@ -1,0 +1,14 @@
+*.zip
+*.fna
+*.gff
+*.gbff
+*.faa
+ncbi_dataset/
+genomes_by_genus/
+all_genomes_fasta/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+*.tsv
+!examples/*.tsv

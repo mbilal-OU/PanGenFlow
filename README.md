@@ -5,7 +5,7 @@
 [![NCBI Datasets](https://img.shields.io/badge/NCBI-Datasets%20CLI-green)]()
 
 > **Bulk download, deduplicate, and quality-control complete bacterial genomes from NCBI.**  
-> Works for any taxon — from a single species to an entire phylum — in one reproducible workflow.
+> Works for any taxon - from a single species to an entire phylum - in one reproducible workflow.
 
 ---
 
@@ -15,11 +15,11 @@
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Step-by-Step Guide](#step-by-step-guide)
-  - [Step 1 — Download Genomes](#step-1--download-genomes)
-  - [Step 2 — Deduplicate](#step-2--deduplicate-gcagcf-pairs)
-  - [Step 3 — Extract Metadata](#step-3--extract-metadata)
-  - [Step 4 — ANI Validation](#step-4--ani-species-validation)
-  - [Step 5 — Genome QC](#step-5--genome-quality-control)
+  - [Step 1 - Download Genomes](#step-1--download-genomes)
+  - [Step 2 - Deduplicate](#step-2--deduplicate-gcagcf-pairs)
+  - [Step 3 - Extract Metadata](#step-3--extract-metadata)
+  - [Step 4 - ANI Validation](#step-4--ani-species-validation)
+  - [Step 5 - Genome QC](#step-5--genome-quality-control)
 - [All Download Options](#all-download-options)
 - [Real Examples](#real-examples)
 - [Output File Structure](#output-file-structure)
@@ -127,7 +127,7 @@ bash scripts/run_checkm2.sh \
 
 ## Step-by-Step Guide
 
-### Step 1 — Download Genomes
+### Step 1 - Download Genomes
 
 Use `batch_download.sh` to download complete genomes for any taxon from NCBI RefSeq.
 
@@ -141,7 +141,7 @@ bash scripts/batch_download.sh <taxon_name> <output_directory>
 # Single genus
 bash scripts/batch_download.sh "Deinococcus" deinococcus_genomes/
 
-# Multiple genera — run in sequence
+# Multiple genera - run in sequence
 bash scripts/batch_download.sh "Thermus" thermus_genomes/
 bash scripts/batch_download.sh "Meiothermus" meiothermus_genomes/
 
@@ -186,10 +186,10 @@ output_directory/
 
 ---
 
-### Step 2 — Deduplicate GCA/GCF Pairs
+### Step 2 - Deduplicate GCA/GCF Pairs
 
 NCBI provides both GCA (GenBank) and GCF (RefSeq) accessions for the same genome,
-doubling your file count. This script removes duplicates — keeping GCF where
+doubling your file count. This script removes duplicates - keeping GCF where
 available, GCA otherwise.
 
 ```bash
@@ -228,7 +228,7 @@ deinococcota_genomes/ncbi_dataset/data/GCF_000020685.1/GCF_000020685.1_ASM2068v1
 
 ---
 
-### Step 3 — Extract Metadata
+### Step 3 - Extract Metadata
 
 Extract species name, genus, family, order, genome size, GC content, gene count,
 and assembly statistics from the NCBI assembly report.
@@ -271,7 +271,7 @@ column -t metadata_table.tsv | head -5
 
 ---
 
-### Step 4 — ANI Species Validation
+### Step 4 - ANI Species Validation
 
 Run FastANI all-vs-all comparison to validate species identity and detect
 contaminated or misidentified genomes. Generates a publication-ready
@@ -303,7 +303,7 @@ bash scripts/run_fastani.sh genome_list.txt fastani_results/ 8
 | > 96% | Same species |
 | 80–96% | Same genus |
 | 70–80% | Same family / order (expected at phylum level) |
-| < 70% | Potential contamination — investigate |
+| < 70% | Potential contamination - investigate |
 
 **Output files:**
 
@@ -333,7 +333,7 @@ Heatmap saved to figures/
 
 ---
 
-### Step 5 — Genome Quality Control
+### Step 5 - Genome Quality Control
 
 Assess completeness and contamination for all genomes using CheckM2.
 Automatically generates a clean genome list with only QC-passing genomes.
@@ -479,7 +479,7 @@ datasets download genome accession \
     --filename selected_genomes.zip
 ```
 
-### Large dataset — dehydrate first (faster)
+### Large dataset - dehydrate first (faster)
 
 ```bash
 # Download metadata only first (seconds)
@@ -566,7 +566,7 @@ datasets download genome taxon 188787 --assembly-level complete
 | Problem | Cause | Fix |
 |---|---|---|
 | `datasets: command not found` | Not installed | `conda install -c conda-forge ncbi-datasets-cli` |
-| Download interrupted | Network issue | Re-run same command — resumes automatically |
+| Download interrupted | Network issue | Re-run same command - resumes automatically |
 | 2× more files than expected | GCA + GCF duplicates | Run `deduplicate_genomes.py` |
 | Missing GFF files | Not included in download | Re-download with `--include genome,gff3` |
 | `No genomes found` | Taxon name misspelled | Use taxid instead of name |
@@ -593,8 +593,8 @@ If you use PanGenFlow in your research please cite the following tools:
 
 ## License
 
-MIT License — free to use, modify, and distribute with attribution.
+MIT License - free to use, modify, and distribute with attribution.
 
 ---
 
-*PanGenFlow — making large-scale genome acquisition reproducible and easy.*
+*PanGenFlow - making large-scale genome acquisition reproducible and easy.*

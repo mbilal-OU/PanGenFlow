@@ -1,612 +1,210 @@
-# NCBI Genome Downloader — Complete CLI Guide
+# PanGenFlow
 
-> A comprehensive, reproducible workflow for downloading complete bacterial genomes from NCBI using the Datasets CLI. Designed for pangenome studies, comparative genomics, and large-scale bioinformatics pipelines.
+Bulk download, deduplicate, and quality-control complete bacterial genomes from NCBI.
+Works for any taxon from a single species to an entire phylum.
 
----
+## What This Does
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [All Download Options](#all-download-options)
-- [Filtering Strategies](#filtering-strategies)
-- [Real Examples](#real-examples)
-- [File Structure](#file-structure)
-- [Deduplication](#deduplication)
-- [Automation Scripts](#automation-scripts)
-- [Troubleshooting](#troubleshooting)
-- [Citation](#citation)
-
----
-
-## Overview
-
-The NCBI Datasets CLI (`datasets`) is the modern, official way to download genome data from NCBI. It replaces legacy approaches like `wget` from FTP and provides structured, metadata-rich downloads with built-in filtering.
-
-```
-NCBI Genome Database
-        │
-        ▼
-datasets download genome
-        │
-        ├── taxon (by organism name or taxid)
-        ├── accession (by specific accession)
-        └── gene (by gene name)
-        │
-        ▼
-ZIP archive
-        │
-        ├── ncbi_dataset/data/{accession}/
-        │   ├── *_genomic.fna     ← genome sequence
-        │   ├── *_genomic.gff     ← gene annotations
-        │   ├── *_genomic.gbff    ← GenBank flat file
-        │   └── protein.faa       ← protein sequences
-        │
-        ├── assembly_data_report.jsonl  ← metadata
-        ├── dataset_catalog.json        ← file index
-        └── README.md
-```
-
----
+Download any taxon → Deduplicate GCA/GCF pairs → Extract metadata → ANI validation → CheckM2 QC → Clean genome list ready for analysis
 
 ## Installation
 
-### Option 1 — Conda (recommended)
-
-```bash
+### NCBI Datasets CLI
 conda install -c conda-forge ncbi-datasets-cli -y
-datasets --version
-```
 
-### Option 2 — Direct download (Linux)
+### FastANI
+conda install -c bioconda fastani -y
 
-```bash
-curl -o datasets \
-  "https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v2/linux-amd64/datasets"
-chmod +x datasets
-sudo mv datasets /usr/local/bin/
-datasets --version
-```
+### CheckM2
+pip install checkm2
+checkm2 database --download --path ~/checkm2_db/
 
-### Option 3 — Direct download (macOS)
-
-```bash
-curl -o datasets \
-  "https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v2/mac/datasets"
-chmod +x datasets
-sudo mv datasets /usr/local/bin/
-```
-
-### Verify installation
-
-```bash
-datasets --version
-# Expected: datasets version 16.x.x
-```
-
----
+### Python
+pip install pandas seaborn matplotlib scipy numpy
 
 ## Quick Start
 
-### Download all complete genomes for a taxon
+### 1. Download
+bash scripts/batch_download.sh "Deinococcota" output_genomes/
 
-```bash
-# By taxonomic name
-datasets download genome taxon "Deinococcota" \
-  --assembly-level complete \
-  --filename deinococcota.zip
+### 2. Deduplicate
+python3 scripts/deduplicate_genomes.py output_genomes/ncbi_dataset/data/ genome_list.txt
 
-# Unzip
-unzip deinococcota.zip -d deinococcota_genomes/
+### 3. Metadata
+python3 scripts/extract_metadata.py output_genomes/ncbi_dataset/data/assembly_data_report.jsonl > metadata.tsv
 
-# Check what you got
-ls deinococcota_genomes/ncbi_dataset/data/ | wc -l
-```
+### 4. ANI QC
+bash scripts/run_fastani.sh genome_list.txt fastani_results/ 8
 
-### Download by specific accession
+### 5. Genome QC
+bash scripts/run_checkm2.sh genome_list.txt checkm2_results/ ~/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd 8
 
-```bash
-datasets download genome accession GCF_000008125.1 \
-  --filename thermus_hb27.zip
-```
+## Scripts
 
----
+### batch_download.sh
+Download complete genomes for any taxon from NCBI.
 
-## All Download Options
+bash scripts/batch_download.sh "Deinococcus" deinococcus_genomes/
+bash scripts/batch_download.sh "Thermus" thermus_genomes/
+bash scripts/batch_download.sh "Deinococcota" deinococcota_genomes/
 
-### Assembly level filters
+Options inside script:
+ASSEMBLY_LEVEL="complete"
+ASSEMBLY_SOURCE="RefSeq"
+INCLUDE="genome,gff3,gbff"
 
-```bash
-# Complete genomes only (best for pangenomics)
---assembly-level complete
+### deduplicate_genomes.py
+Removes GCA/GCF duplicate pairs. Keeps GCF (RefSeq) where available, GCA otherwise.
 
-# Chromosome-level and above
---assembly-level chromosome
+python3 scripts/deduplicate_genomes.py \
+    deinococcota_genomes/ncbi_dataset/data/ \
+    genome_list.txt
 
-# Scaffold-level and above
---assembly-level scaffold
+Output:
+  Total GCF folders : 116
+  GCA-only added    : 9
+  Total final       : 125
 
-# All assembly levels
---assembly-level contig,scaffold,chromosome,complete
-```
+### extract_metadata.py
+Extracts species, genus, family, order, genome size, GC%, gene count from NCBI report.
 
-### Include specific file types
+python3 scripts/extract_metadata.py \
+    deinococcota_genomes/ncbi_dataset/data/assembly_data_report.jsonl \
+    > metadata_table.tsv
 
-```bash
-# Genome sequence only (default)
---include genome
+Output columns: accession | species | strain | genus | family | order |
+                genome_size_bp | gc_percent | contig_n50 | gene_count
 
-# Genome + GFF annotation
---include genome,gff3
+### run_fastani.sh
+Runs FastANI all-vs-all and generates hierarchically clustered ANI heatmap.
 
-# Genome + GenBank flat file
---include genome,gbff
+bash scripts/run_fastani.sh genome_list.txt fastani_results/ 8
 
-# Genome + protein sequences
---include genome,protein
+Output:
+  fastani_results/fastani_results.txt
+  figures/ANI_heatmap_clustered.pdf
+  figures/ANI_heatmap_clustered.png
 
-# Everything
---include genome,rna,protein,cds,gff3,gbff,seq-report
+ANI thresholds:
+  > 96%    same species
+  80-96%   same genus
+  70-80%   inter-order (expected at phylum level)
+  < 70%    potential contamination
 
-# For pangenome studies (recommended)
---include genome,gff3,gbff,protein,seq-report
-```
+### run_checkm2.sh
+Assesses completeness and contamination. Auto-splits passed/failed genomes.
 
-### Source database filters
+bash scripts/run_checkm2.sh \
+    genome_list.txt \
+    checkm2_results/ \
+    ~/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd \
+    8
 
-```bash
-# RefSeq only (higher quality, recommended)
---assembly-source RefSeq
+Default thresholds: Completeness >= 90%, Contamination <= 5%
 
-# GenBank only
---assembly-source GenBank
+Output:
+  checkm2_results/quality_report.tsv
+  checkm2_results/genome_list_qc_passed.txt
+  checkm2_results/genome_list_qc_failed.txt
 
-# Both (default)
---assembly-source all
-```
+## Download Options Reference
 
-### Exclusion filters
+Assembly level:
+  --assembly-level complete          recommended for pangenomics
+  --assembly-level chromosome
+  --assembly-level scaffold
+  --assembly-level contig
 
-```bash
-# Exclude atypical assemblies (contaminated, misassembled)
---exclude-atypical
+Source:
+  --assembly-source RefSeq           recommended
+  --assembly-source GenBank
+  --assembly-source all
 
-# Exclude metagenome-assembled genomes
-# (use --assembly-source RefSeq instead — MAGs rarely in RefSeq)
+File types:
+  --include genome                   FASTA only
+  --include genome,gff3              + annotations
+  --include genome,gff3,gbff         + GenBank flat file
+  --include genome,gff3,gbff,protein + proteins
 
-# Exclude multi-isolate projects (large redundant datasets)
-# Filter manually after download using metadata
-```
+Filters:
+  --exclude-atypical                 remove contaminated
+  --annotated                        only annotated
+  --limit 50                         limit results
 
-### Annotation filters
+## Check count before downloading
 
-```bash
-# Only annotated genomes
---annotated
+datasets summary genome taxon "Deinococcota" \
+    --assembly-level complete \
+    --assembly-source RefSeq | \
+    python3 -c "import json,sys; print(json.load(sys.stdin)['total_count'])"
 
-# Reference genomes only
---reference
-```
+## Download by accession list
 
-### Limit results
-
-```bash
-# Download only first 50 genomes
---limit 50
-
-# No limit (default — downloads all)
---limit none
-```
-
----
-
-## Filtering Strategies
-
-### For pangenome studies (recommended settings)
-
-```bash
-datasets download genome taxon "YOUR_ORGANISM" \
-  --assembly-level complete \
-  --assembly-source RefSeq \
-  --exclude-atypical \
-  --annotated \
-  --include genome,gff3,gbff,seq-report \
-  --filename organism_complete.zip
-```
-
-### For large phyla (thousands of genomes)
-
-```bash
-# First check how many genomes exist
-datasets summary genome taxon "Pseudomonadota" \
-  --assembly-level complete \
-  --assembly-source RefSeq | \
-  python3 -c "import json,sys; d=json.load(sys.stdin); print(d['total_count'])"
-
-# Then download with a limit to test
-datasets download genome taxon "Pseudomonadota" \
-  --assembly-level complete \
-  --assembly-source RefSeq \
-  --limit 100 \
-  --filename pseudomonadota_test.zip
-```
-
-### For specific species list
-
-```bash
-# Create accession list file
-cat > accession_list.txt << EOF
+cat > accessions.txt << ACEOF
 GCF_000008125.1
 GCF_000091545.1
 GCF_000020685.1
-GCF_000195335.1
-EOF
+ACEOF
 
-# Download all at once
 datasets download genome accession \
-  --inputfile accession_list.txt \
-  --include genome,gff3,gbff \
-  --filename my_genomes.zip
-```
+    --inputfile accessions.txt \
+    --include genome,gff3 \
+    --filename my_genomes.zip
 
----
+## Large dataset — dehydrate first
 
-## Real Examples
+datasets download genome taxon "Pseudomonadota" \
+    --assembly-level complete \
+    --dehydrated \
+    --filename pseudomonadota.zip
 
-### Example 1 — Deinococcota phylum (this study)
+unzip pseudomonadota.zip -d pseudomonadota_genomes/
 
-```bash
-# Download all complete Deinococcota genomes
-datasets download genome taxon "Deinococcota" \
-  --assembly-level complete \
-  --exclude-atypical \
-  --include genome,gff3,gbff,seq-report \
-  --filename deinococcota_complete.zip
+datasets rehydrate \
+    --directory pseudomonadota_genomes/ \
+    --max-workers 8
 
-# Unzip
-unzip deinococcota_complete.zip -d deinococcota_genomes/
+## Taxid Reference
 
-# Count total genomes
-ls deinococcota_genomes/ncbi_dataset/data/ | \
-  grep -v "assembly_data_report\|dataset_catalog\|README" | wc -l
-# Result: 258 folders (GCA + GCF pairs)
-
-# Keep only GCF (RefSeq) accessions
-find deinococcota_genomes/ncbi_dataset/data/ \
-  -name "*.fna" -path "*/GCF_*" \
-  > genome_list.txt
-
-wc -l genome_list.txt
-# Result: 116 complete GCF genomes
-```
-
-### Example 2 — Single genus download
-
-```bash
-# Download all complete Deinococcus genomes
-datasets download genome taxon "Deinococcus" \
-  --assembly-level complete \
-  --assembly-source RefSeq \
-  --exclude-atypical \
-  --include genome,gff3,gbff \
-  --filename deinococcus_complete.zip
-
-unzip deinococcus_complete.zip -d deinococcus_genomes/
-
-find deinococcus_genomes/ncbi_dataset/data/ \
-  -name "*.fna" > deinococcus_genome_list.txt
-
-wc -l deinococcus_genome_list.txt
-# Result: ~60 genomes
-```
-
-### Example 3 — Check available genomes before downloading
-
-```bash
-# Summary — no download, just count
-datasets summary genome taxon "Deinococcota" \
-  --assembly-level complete \
-  --assembly-source RefSeq \
-  --report genome | \
-  python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-print(f'Total genomes: {data[\"total_count\"]}')
-for r in data.get('reports', [])[:5]:
-    print(r['accession'], r['organism']['organism_name'])
-"
-```
-
-### Example 4 — Download with full metadata
-
-```bash
-datasets download genome taxon "Thermus" \
-  --assembly-level complete \
-  --assembly-source RefSeq \
-  --include genome,gff3,gbff,protein,seq-report \
-  --filename thermus_full.zip
-
-# Extract taxonomy metadata
-python3 << 'EOF'
-import json
-
-with open("thermus_genomes/ncbi_dataset/data/assembly_data_report.jsonl") as f:
-    for line in f:
-        d = json.loads(line)
-        if d.get("accession","").startswith("GCF"):
-            name = d.get("organism",{}).get("organismName","")
-            size = d.get("assemblyStats",{}).get("totalSequenceLength",0)
-            print(f"{d['accession']}\t{name}\t{size:,} bp")
-EOF
-```
-
-### Example 5 — Multiple taxa at once
-
-```bash
-# Download multiple genera simultaneously
-for taxon in "Deinococcus" "Thermus" "Meiothermus"; do
-    echo "Downloading $taxon..."
-    datasets download genome taxon "$taxon" \
-      --assembly-level complete \
-      --assembly-source RefSeq \
-      --exclude-atypical \
-      --include genome,gff3 \
-      --filename "${taxon,,}_complete.zip"
-    
-    mkdir -p "${taxon,,}_genomes"
-    unzip "${taxon,,}_complete.zip" -d "${taxon,,}_genomes/"
-    echo "Done: $taxon"
-done
-```
-
----
-
-## File Structure
-
-After downloading and unzipping, your directory looks like:
-
-```
-deinococcota_genomes/
-├── README.md
-├── md5sum.txt
-└── ncbi_dataset/
-    └── data/
-        ├── assembly_data_report.jsonl    ← metadata for all genomes
-        ├── dataset_catalog.json          ← index of all files
-        ├── GCF_000008125.1/              ← one folder per accession
-        │   ├── GCF_000008125.1_ASM812v1_genomic.fna     ← genome FASTA
-        │   ├── GCF_000008125.1_ASM812v1_genomic.gff     ← GFF3 annotation
-        │   ├── GCF_000008125.1_ASM812v1_genomic.gbff    ← GenBank flat file
-        │   └── protein.faa                               ← protein sequences
-        ├── GCF_000091545.1/
-        │   └── ...
-        └── GCF_000020685.1/
-            └── ...
-```
-
----
-
-## Deduplication
-
-NCBI provides both GCA (GenBank) and GCF (RefSeq) accessions for the same genome, doubling your file count. Always deduplicate before analysis.
-
-### Keep GCF only (recommended)
-
-```bash
-# GCF = RefSeq = higher quality, curated
-find ncbi_dataset/data/ -name "*.fna" -path "*/GCF_*" > genome_list.txt
-wc -l genome_list.txt
-```
-
-### Keep GCA only (when GCF not available)
-
-```bash
-find ncbi_dataset/data/ -name "*.fna" -path "*/GCA_*" > gca_list.txt
-```
-
-### Smart deduplication — GCF where available, GCA otherwise
-
-```bash
-python3 << 'EOF'
-import os, glob
-
-data_dir = "ncbi_dataset/data/"
-gcf = set()
-gca = set()
-
-for path in glob.glob(f"{data_dir}GCF_*/"):
-    gcf.add(os.path.basename(path.rstrip("/")))
-
-for path in glob.glob(f"{data_dir}GCA_*/"):
-    gca.add(os.path.basename(path.rstrip("/")))
-
-# Find GCA-only (no GCF counterpart)
-gca_nums = {a.replace("GCA_","") for a in gca}
-gcf_nums = {a.replace("GCF_","") for a in gcf}
-gca_only_nums = gca_nums - gcf_nums
-
-final = list(gcf)
-for num in gca_only_nums:
-    final.append(f"GCA_{num}")
-
-with open("genome_list_dedup.txt", "w") as out:
-    for acc in sorted(final):
-        fna = glob.glob(f"{data_dir}{acc}/*.fna")
-        if fna:
-            out.write(fna[0] + "\n")
-
-print(f"GCF genomes: {len(gcf)}")
-print(f"GCA-only genomes added: {len(gca_only_nums)}")
-print(f"Total final genomes: {len(final)}")
-EOF
-```
-
----
-
-## Automation Scripts
-
-### Batch download script
-
-```bash
-#!/bin/bash
-# batch_download.sh — download genomes for multiple taxa
-
-TAXA=(
-    "Deinococcus"
-    "Thermus"
-    "Meiothermus"
-    "Marinithermus"
-    "Oceanithermus"
-    "Vulcanithermus"
-    "Rhabdothermus"
-    "Truepera"
-)
-
-OUTDIR="genomes_by_genus"
-mkdir -p "$OUTDIR"
-
-for taxon in "${TAXA[@]}"; do
-    safe_name=$(echo "$taxon" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
-    echo "=== Downloading $taxon ==="
-    
-    datasets download genome taxon "$taxon" \
-      --assembly-level complete \
-      --assembly-source RefSeq \
-      --exclude-atypical \
-      --include genome,gff3,gbff \
-      --filename "${OUTDIR}/${safe_name}.zip"
-    
-    unzip -q "${OUTDIR}/${safe_name}.zip" \
-      -d "${OUTDIR}/${safe_name}/"
-    
-    count=$(find "${OUTDIR}/${safe_name}/" -name "*.fna" | wc -l)
-    echo "Downloaded $count genomes for $taxon"
-done
-
-echo "All downloads complete"
-```
-
-### Metadata extraction script
-
-```bash
-#!/usr/bin/env python3
-# extract_metadata.py — extract taxonomy and assembly stats
-
-import json
-import csv
-import sys
-
-jsonl_file = sys.argv[1] if len(sys.argv) > 1 else \
-             "ncbi_dataset/data/assembly_data_report.jsonl"
-
-fields = ["accession","species","genus","family","order",
-          "genome_size","gc_content","contig_count","n50"]
-
-writer = csv.DictWriter(sys.stdout, fieldnames=fields, delimiter="\t")
-writer.writeheader()
-
-with open(jsonl_file) as f:
-    for line in f:
-        try:
-            d = json.loads(line)
-            if not d.get("accession","").startswith("GCF"):
-                continue
-            
-            org  = d.get("organism", {})
-            tax  = d.get("taxonomy", {})
-            stat = d.get("assemblyStats", {})
-            
-            genus = family = order = ""
-            for node in tax.get("classification", []):
-                r = node.get("rank","")
-                n = node.get("name","")
-                if r == "GENUS":  genus  = n
-                if r == "FAMILY": family = n
-                if r == "ORDER":  order  = n
-            
-            writer.writerow({
-                "accession":    d.get("accession",""),
-                "species":      org.get("organismName",""),
-                "genus":        genus,
-                "family":       family,
-                "order":        order,
-                "genome_size":  stat.get("totalSequenceLength",""),
-                "gc_content":   stat.get("gcPercent",""),
-                "contig_count": stat.get("numberOfContigs",""),
-                "n50":          stat.get("contigN50",""),
-            })
-        except Exception as e:
-            continue
-```
-
-Run it:
-
-```bash
-python3 extract_metadata.py \
-  deinococcota_genomes/ncbi_dataset/data/assembly_data_report.jsonl \
-  > metadata_table.tsv
-
-column -t metadata_table.tsv | head -20
-```
-
----
+| Taxon            | Taxid  |
+|------------------|--------|
+| Deinococcota     | 188787 |
+| Actinomycetota   | 201174 |
+| Pseudomonadota   | 1224   |
+| Bacillota        | 1239   |
+| Bacteroidota     | 976    |
+| Cyanobacteria    | 1117   |
+| Deinococcus      | 1298   |
+| Thermus          | 270    |
+| Corynebacterium  | 1716   |
+| Streptomyces     | 1883   |
+| Bacillus         | 1386   |
 
 ## Troubleshooting
 
-| Problem | Cause | Fix |
-|---|---|---|
-| `datasets: command not found` | Not installed or not in PATH | `conda install -c conda-forge ncbi-datasets-cli` |
-| ZIP file incomplete | Download interrupted | Re-run download command — resumes automatically |
-| 241 files instead of ~129 | GCA + GCF duplicates | Filter to GCF only — see Deduplication section |
-| Missing GFF files | Not included in download | Re-download with `--include genome,gff3` |
-| Empty folders | NCBI rate limiting | Add `--dehydrated` flag then `datasets rehydrate` |
-| `No genomes found` | Taxon name spelling | Check spelling or use NCBI taxid instead |
-
-### Using taxid instead of name (more reliable)
-
-```bash
-# Find taxid on NCBI Taxonomy browser
-# Deinococcota taxid = 188787
-
-datasets download genome taxon 188787 \
-  --assembly-level complete \
-  --filename deinococcota.zip
-```
-
-### Dehydrated download (large datasets)
-
-```bash
-# Download metadata only first (fast)
-datasets download genome taxon "Deinococcota" \
-  --assembly-level complete \
-  --dehydrated \
-  --filename deinococcota_dehydrated.zip
-
-unzip deinococcota_dehydrated.zip -d deinococcota_genomes/
-
-# Then rehydrate (download actual sequences)
-datasets rehydrate \
-  --directory deinococcota_genomes/ \
-  --max-workers 8
-```
-
----
+| Problem                  | Fix                                                    |
+|--------------------------|--------------------------------------------------------|
+| datasets not found       | conda install -c conda-forge ncbi-datasets-cli         |
+| Download interrupted     | Re-run same command — resumes automatically            |
+| 2x files expected        | GCA+GCF duplicates — run deduplicate_genomes.py        |
+| No GFF files             | Re-download with --include genome,gff3                 |
+| No genomes found         | Check spelling or use taxid instead of name            |
+| Slow on large dataset    | Use --dehydrated then datasets rehydrate               |
 
 ## Citation
 
-If you use NCBI Datasets in your research, cite:
+NCBI Datasets:
+Sayers EW, et al. Database resources of the National Center for Biotechnology
+Information in 2023. Nucleic Acids Research. 2023;51(D1):D29-D38.
 
-> NCBI Resource Coordinators. Database resources of the National Center for Biotechnology Information. Nucleic Acids Research. 2018;46(D1):D8–D13. doi:10.1093/nar/gkx1095
+FastANI:
+Jain C, et al. High throughput ANI analysis of 90K prokaryotic genomes reveals
+clear species boundaries. Nature Communications. 2018;9(1):5114.
 
-> Sayers EW, et al. Database resources of the National Center for Biotechnology Information in 2023. Nucleic Acids Research. 2023;51(D1):D29–D38.
-
----
+CheckM2:
+Chklovski A, et al. CheckM2: a rapid, scalable and accurate tool for assessing
+microbial genome quality using machine learning. Nature Methods. 2023;20:1203-1212.
 
 ## License
 
 MIT License — free to use, modify, and distribute with attribution.
-
----
-
-*Developed as part of the Deinococcota Pangenome Study — BioMac Lab 2026*

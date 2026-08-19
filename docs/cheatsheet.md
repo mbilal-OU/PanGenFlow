@@ -25,7 +25,7 @@ Use all NCBI assembly sources:
 bash scripts/batch_download.sh "Deinococcus" genomes_all/ --source all
 ```
 
-## Harmonize GCA/GCF pairs
+## Reconcile paired GCA/GCF records
 
 ```bash
 python scripts/deduplicate_genomes.py \

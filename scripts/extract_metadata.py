@@ -1,131 +1,137 @@
 #!/usr/bin/env python3
-"""
-extract_metadata.py
-Extract taxonomy, assembly stats, and genome metadata from NCBI dataset report.
+"""Extract stable assembly metadata from an NCBI Datasets genome report.
+
+This parser follows the current assembly_data_report.jsonl structure and does
+not invent lineage ranks that are not present in that report. Use NCBI taxonomy
+reports/dataformat separately when full lineage (genus/family/order/phylum) is
+required.
 
 Usage:
-    python3 extract_metadata.py <assembly_data_report.jsonl> [output.tsv]
+    python3 extract_metadata.py assembly_data_report.jsonl [output.tsv]
 
-Example:
-    python3 extract_metadata.py \
-        deinococcota_genomes/ncbi_dataset/data/assembly_data_report.jsonl \
-        > metadata_table.tsv
+Options:
+    --source all|RefSeq|GenBank   Filter assembly source (default: all)
 """
 
-import json
+from __future__ import annotations
+
+import argparse
 import csv
+import json
 import sys
-import os
+from pathlib import Path
 
-def extract_taxonomy(tax_data):
-    genus = family = order = classt = phylum = ""
-    for node in tax_data.get("classification", []):
-        rank = node.get("rank", "")
-        name = node.get("name", "")
-        if rank == "GENUS":   genus  = name
-        if rank == "FAMILY":  family = name
-        if rank == "ORDER":   order  = name
-        if rank == "CLASS":   classt = name
-        if rank == "PHYLUM":  phylum = name
-    return genus, family, order, classt, phylum
+FIELDS = [
+    "accession", "current_accession", "paired_accession", "source_database",
+    "organism_name", "strain", "taxid", "assembly_name", "assembly_level",
+    "assembly_status", "refseq_category", "bioproject_accession", "release_date",
+    "genome_size_bp", "gc_percent", "contig_count", "contig_n50",
+    "scaffold_count", "scaffold_n50", "gene_count", "protein_count",
+    "ncbi_checkm_completeness", "ncbi_checkm_contamination",
+    "ncbi_ani_check_status", "ncbi_ani_best_match_status",
+]
 
 
-def main():
-    if len(sys.argv) < 2:
-        print(__doc__)
-        sys.exit(1)
+def normalize_source(value: str) -> str:
+    value = (value or "").upper()
+    if "REFSEQ" in value:
+        return "RefSeq"
+    if "GENBANK" in value:
+        return "GenBank"
+    return value
 
-    jsonl_file = sys.argv[1]
 
-    if not os.path.exists(jsonl_file):
-        print(f"Error: file not found: {jsonl_file}", file=sys.stderr)
-        sys.exit(1)
+def record_to_row(record: dict) -> dict:
+    org = record.get("organism") or {}
+    assm = record.get("assemblyInfo") or {}
+    stats = record.get("assemblyStats") or {}
+    ann = record.get("annotationInfo") or {}
+    ann_stats = ann.get("stats") or {}
+    gene_counts = ann_stats.get("geneCounts") or {}
+    checkm = record.get("checkmInfo") or {}
+    ani = record.get("averageNucleotideIdentity") or {}
+    infraspecific = org.get("infraspecificNames") or {}
 
-    fields = [
-        "accession", "species", "strain",
-        "genus", "family", "order", "class", "phylum",
-        "genome_size_bp", "gc_percent",
-        "contig_count", "contig_n50",
-        "scaffold_count", "scaffold_n50",
-        "gene_count", "protein_count",
-        "assembly_level", "refseq_category",
-        "release_date", "taxid"
-    ]
+    paired = record.get("pairedAccession")
+    if not paired:
+        paired = (assm.get("pairedAssembly") or {}).get("accession", "")
 
-    writer = csv.DictWriter(
-        sys.stdout, fieldnames=fields,
-        delimiter="\t", extrasaction="ignore"
-    )
-    writer.writeheader()
+    return {
+        "accession": record.get("accession", ""),
+        "current_accession": record.get("currentAccession", ""),
+        "paired_accession": paired or "",
+        "source_database": normalize_source(record.get("sourceDatabase", "")),
+        "organism_name": org.get("organismName", ""),
+        "strain": infraspecific.get("strain", ""),
+        "taxid": org.get("taxId", ""),
+        "assembly_name": assm.get("assemblyName", ""),
+        "assembly_level": assm.get("assemblyLevel", ""),
+        "assembly_status": assm.get("assemblyStatus", ""),
+        "refseq_category": assm.get("refseqCategory", ""),
+        "bioproject_accession": assm.get("bioprojectAccession", ""),
+        "release_date": assm.get("releaseDate", ""),
+        "genome_size_bp": stats.get("totalSequenceLength", ""),
+        "gc_percent": stats.get("gcPercent", ""),
+        "contig_count": stats.get("numberOfContigs", ""),
+        "contig_n50": stats.get("contigN50", ""),
+        "scaffold_count": stats.get("numberOfScaffolds", ""),
+        "scaffold_n50": stats.get("scaffoldN50", ""),
+        "gene_count": gene_counts.get("total", ""),
+        "protein_count": gene_counts.get("proteinCoding", ""),
+        "ncbi_checkm_completeness": checkm.get("completeness", ""),
+        "ncbi_checkm_contamination": checkm.get("contamination", ""),
+        "ncbi_ani_check_status": ani.get("taxonomyCheckStatus", ""),
+        "ncbi_ani_best_match_status": ani.get("matchStatus", ""),
+    }
 
-    gcf_count = 0
-    gca_count = 0
-    skipped   = 0
 
-    with open(jsonl_file) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                d = json.loads(line)
-                acc = d.get("accession", "")
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("jsonl_file", type=Path)
+    parser.add_argument("output", nargs="?", type=Path)
+    parser.add_argument("--source", choices=["all", "RefSeq", "GenBank"], default="all")
+    args = parser.parse_args()
 
-                if acc.startswith("GCF"):
-                    gcf_count += 1
-                elif acc.startswith("GCA"):
-                    gca_count += 1
-                    continue  # skip GCA by default
-                else:
+    if not args.jsonl_file.is_file():
+        parser.error(f"file not found: {args.jsonl_file}")
+
+    output_handle = args.output.open("w", encoding="utf-8", newline="") if args.output else sys.stdout
+    written = 0
+    skipped = 0
+
+    try:
+        writer = csv.DictWriter(output_handle, fieldnames=FIELDS, delimiter="\t")
+        writer.writeheader()
+        with args.jsonl_file.open(encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    print(f"WARNING: malformed JSON on line {line_number}: {exc}", file=sys.stderr)
                     skipped += 1
                     continue
+                row = record_to_row(record)
+                if args.source != "all" and row["source_database"] != args.source:
+                    skipped += 1
+                    continue
+                if not row["accession"]:
+                    skipped += 1
+                    continue
+                writer.writerow(row)
+                written += 1
+    finally:
+        if args.output:
+            output_handle.close()
 
-                org  = d.get("organism", {})
-                tax  = d.get("taxonomy", {})
-                stat = d.get("assemblyStats", {})
-                ann  = d.get("annotationInfo", {})
-
-                genus, family, order, classt, phylum = extract_taxonomy(tax)
-
-                # Strain name
-                infraspecific = org.get("infraspecificNames", {})
-                strain = infraspecific.get("strain", "")
-
-                writer.writerow({
-                    "accession":       acc,
-                    "species":         org.get("organismName", ""),
-                    "strain":          strain,
-                    "genus":           genus,
-                    "family":          family,
-                    "order":           order,
-                    "class":           classt,
-                    "phylum":          phylum,
-                    "genome_size_bp":  stat.get("totalSequenceLength", ""),
-                    "gc_percent":      stat.get("gcPercent", ""),
-                    "contig_count":    stat.get("numberOfContigs", ""),
-                    "contig_n50":      stat.get("contigN50", ""),
-                    "scaffold_count":  stat.get("numberOfScaffolds", ""),
-                    "scaffold_n50":    stat.get("scaffoldN50", ""),
-                    "gene_count":      ann.get("geneCount", {}).get("total", ""),
-                    "protein_count":   ann.get("geneCount", {}).get("proteinCoding", ""),
-                    "assembly_level":  d.get("assemblyInfo", {}).get("assemblyLevel", ""),
-                    "refseq_category": d.get("assemblyInfo", {}).get("refseqCategory", ""),
-                    "release_date":    d.get("assemblyInfo", {}).get("releaseDate", ""),
-                    "taxid":           org.get("taxId", ""),
-                })
-
-            except json.JSONDecodeError:
-                skipped += 1
-                continue
-            except Exception as e:
-                skipped += 1
-                continue
-
-    print(f"\nSummary (written to stderr):", file=sys.stderr)
-    print(f"  GCF records extracted: {gcf_count}", file=sys.stderr)
-    print(f"  GCA records skipped:   {gca_count}", file=sys.stderr)
-    print(f"  Other skipped:         {skipped}", file=sys.stderr)
+    print(f"Metadata records written: {written}", file=sys.stderr)
+    print(f"Records skipped:          {skipped}", file=sys.stderr)
+    if args.output:
+        print(f"Output:                   {args.output}", file=sys.stderr)
+    return 0 if written else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

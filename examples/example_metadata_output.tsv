@@ -1,9 +1,3 @@
-accession	species	strain	genus	family	order	class	phylum	genome_size_bp	gc_percent	contig_count	contig_n50	scaffold_count	scaffold_n50	gene_count	protein_count	assembly_level	refseq_category	release_date	taxid
-GCF_000008125.1	Thermus thermophilus HB27	HB27	Thermus	Thermaceae	Thermales	Deinococci	Deinococcota	2116490	69.4	2	1894877	2	1894877	2238	2101	Complete Genome	reference genome	2003-07-08	262724
-GCF_000091545.1	Thermus thermophilus HB8	HB8	Thermus	Thermaceae	Thermales	Deinococci	Deinococcota	2141175	69.5	2	1849742	2	1849742	2219	2085	Complete Genome	reference genome	2004-03-17	300852
-GCF_000020685.1	Deinococcus deserti VCD115	VCD115	Deinococcus	Deinococcaceae	Deinococcales	Deinococci	Deinococcota	2801054	63.6	4	2237407	4	2237407	2828	2709	Complete Genome	reference genome	2009-01-05	546414
-GCF_000008565.1	Deinococcus radiodurans R1	R1	Deinococcus	Deinococcaceae	Deinococcales	Deinococci	Deinococcota	3284156	66.6	4	2648638	4	2648638	3195	2987	Complete Genome	reference genome	1999-11-22	243230
-GCF_000024425.1	Meiothermus ruber DSM 1279	DSM 1279	Meiothermus	Thermaceae	Thermales	Deinococci	Deinococcota	2970460	65.0	2	2921739	2	2921739	2729	2570	Complete Genome	na	2010-11-05	504728
-GCF_000183745.1	Oceanithermus profundus DSM 14977	DSM 14977	Oceanithermus	Thermaceae	Thermales	Deinococci	Deinococcota	2191940	65.3	2	2132244	2	2132244	2079	1960	Complete Genome	na	2011-02-24	504740
-GCF_000195335.1	Marinithermus hydrothermalis DSM 14884	DSM 14884	Marinithermus	Thermaceae	Thermales	Deinococci	Deinococcota	2184748	64.4	1	2184748	1	2184748	2083	1964	Complete Genome	na	2011-05-10	742167
-GCF_000186385.1	Deinococcus maricopensis DSM 21211	DSM 21211	Deinococcus	Deinococcaceae	Deinococcales	Deinococci	Deinococcota	3498530	63.0	1	3498530	1	3498530	3301	3177	Complete Genome	na	2011-02-14	709986
+accession	current_accession	paired_accession	source_database	organism_name	strain	taxid	assembly_name	assembly_level	assembly_status	refseq_category	bioproject_accession	release_date	genome_size_bp	gc_percent	contig_count	contig_n50	scaffold_count	scaffold_n50	gene_count	protein_count	ncbi_checkm_completeness	ncbi_checkm_contamination	ncbi_ani_check_status	ncbi_ani_best_match_status
+GCF_000008125.1	GCF_000008125.1		RefSeq	Thermus thermophilus HB27	HB27	262724		Complete Genome	current	reference genome		2003-07-08	2116490	69.4	2	1894877	2	1894877	2238	2101				
+GCF_000091545.1	GCF_000091545.1		RefSeq	Thermus thermophilus HB8	HB8	300852		Complete Genome	current	reference genome		2004-03-17	2141175	69.5	2	1849742	2	1849742	2219	2085				

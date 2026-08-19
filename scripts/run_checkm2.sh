@@ -1,143 +1,138 @@
-#!/bin/bash
-# =============================================================================
-# run_checkm2.sh
-# Run CheckM2 genome quality assessment and filter by completeness/contamination
-#
-# Usage:
-#   bash run_checkm2.sh <genome_list.txt> <output_dir> <db_path>
-#
-# Example:
-#   bash run_checkm2.sh genome_list.txt checkm2_results/ ~/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd
-#
-# Requirements:
-#   conda activate checkm2
-#   checkm2 database --download --path ~/checkm2_db/
-# =============================================================================
+#!/usr/bin/env bash
+# Run CheckM2 and create QC-passed / QC-failed genome lists.
+# Genomes are staged as symlinks rather than copied, avoiding duplicate disk use.
 
 set -euo pipefail
 
-GENOME_LIST=${1:-"genome_list.txt"}
+GENOME_LIST=${1:-"genome_list_clean.txt"}
 OUTDIR=${2:-"checkm2_results"}
-DB_PATH=${3:-"$HOME/checkm2_db/CheckM2_database/uniref100.KO.1.dmnd"}
+DB_PATH=${3:-"${CHECKM2DB:-}"}
 THREADS=${4:-8}
 MIN_COMPLETENESS=${5:-90}
 MAX_CONTAMINATION=${6:-5}
 
-echo "========================================"
-echo "CheckM2 Genome Quality Assessment"
-echo "Genome list      : $GENOME_LIST"
-echo "Output dir       : $OUTDIR"
-echo "Database         : $DB_PATH"
-echo "Threads          : $THREADS"
-echo "Min completeness : ${MIN_COMPLETENESS}%"
-echo "Max contamination: ${MAX_CONTAMINATION}%"
-echo "Started          : $(date)"
-echo "========================================"
+if [[ ! -f "$GENOME_LIST" ]]; then
+    echo "ERROR: genome list not found: $GENOME_LIST" >&2
+    exit 1
+fi
+if ! command -v checkm2 >/dev/null 2>&1; then
+    echo "ERROR: checkm2 is not available in PATH" >&2
+    exit 127
+fi
+if [[ -z "$DB_PATH" ]]; then
+    echo "ERROR: provide the CheckM2 database path as argument 3 or set CHECKM2DB" >&2
+    exit 2
+fi
+if [[ -e "$OUTDIR/quality_report.tsv" ]]; then
+    echo "ERROR: $OUTDIR/quality_report.tsv already exists; choose a new output directory or remove the old run" >&2
+    exit 2
+fi
 
-# Stage genomes into one flat directory
-GENOME_DIR="${OUTDIR}/input_genomes"
-mkdir -p "$GENOME_DIR"
+STAGE_DIR="${OUTDIR%/}.input_genomes"
+MAPPING_TMP=$(mktemp)
+rm -rf "$STAGE_DIR"
+mkdir -p "$STAGE_DIR"
+trap 'rm -f "$MAPPING_TMP"' EXIT
 
-echo "Copying genomes to staging directory..."
-while read path; do
-    cp "$path" "$GENOME_DIR/"
-done < "$GENOME_LIST"
+python3 - "$GENOME_LIST" "$STAGE_DIR" "$MAPPING_TMP" <<'PYEOF'
+from pathlib import Path
+import re
+import sys
 
-GENOME_COUNT=$(ls "$GENOME_DIR"/*.fna | wc -l)
-echo "Genomes staged: $GENOME_COUNT"
+list_file = Path(sys.argv[1])
+stage_dir = Path(sys.argv[2])
+mapping_file = Path(sys.argv[3])
+accession_re = re.compile(r"GC[AF]_\d+\.\d+")
+used = set()
+rows = []
 
-# Run CheckM2
-echo ""
-echo "Running CheckM2..."
+for raw in list_file.read_text().splitlines():
+    raw = raw.strip()
+    if not raw:
+        continue
+    src = Path(raw).expanduser().resolve()
+    if not src.is_file():
+        raise SystemExit(f"Genome file not found: {src}")
+    if src.name.endswith(".gz"):
+        raise SystemExit(f"Compressed genome detected: {src}. Rehydrate without --gzip or decompress before CheckM2 staging.")
+
+    accession = next((p for p in reversed(src.parts) if accession_re.fullmatch(p)), None)
+    stem = accession or src.stem.replace("_genomic", "")
+    label = stem
+    counter = 2
+    while label in used:
+        label = f"{stem}_{counter}"
+        counter += 1
+    used.add(label)
+
+    target = stage_dir / f"{label}.fna"
+    target.symlink_to(src)
+    rows.append((label, str(src)))
+
+with mapping_file.open("w", encoding="utf-8") as out:
+    out.write("Name\toriginal_path\n")
+    for label, src in rows:
+        out.write(f"{label}\t{src}\n")
+
+print(f"Staged {len(rows)} genome symlinks")
+PYEOF
+
+GENOME_COUNT=$(find "$STAGE_DIR" -maxdepth 1 -type l -name '*.fna' | wc -l)
+if (( GENOME_COUNT == 0 )); then
+    echo "ERROR: no genomes were staged" >&2
+    exit 1
+fi
+
 checkm2 predict \
-    --input "$GENOME_DIR/" \
-    --output-directory "$OUTDIR/" \
+    --input "$STAGE_DIR" \
+    --output-directory "$OUTDIR" \
     --database_path "$DB_PATH" \
     --threads "$THREADS" \
     --extension fna
 
-echo "CheckM2 complete: $(date)"
+cp "$MAPPING_TMP" "$OUTDIR/input_mapping.tsv"
 
-# Filter results and generate clean genome list
-echo ""
-echo "Filtering genomes by quality thresholds..."
-
-python3 << PYEOF
-import pandas as pd
+python3 - "$OUTDIR/quality_report.tsv" "$OUTDIR/input_mapping.tsv" "$OUTDIR" "$MIN_COMPLETENESS" "$MAX_CONTAMINATION" <<'PYEOF'
+from pathlib import Path
 import sys
+import pandas as pd
 
-report = "${OUTDIR}/quality_report.tsv"
-genome_list = "${GENOME_LIST}"
-outdir = "${OUTDIR}"
-min_comp = ${MIN_COMPLETENESS}
-max_cont = ${MAX_CONTAMINATION}
+report_path = Path(sys.argv[1])
+mapping_path = Path(sys.argv[2])
+outdir = Path(sys.argv[3])
+min_comp = float(sys.argv[4])
+max_cont = float(sys.argv[5])
 
-# Load report
-df = pd.read_csv(report, sep="\t")
-print(f"\nTotal genomes assessed: {len(df)}")
+report = pd.read_csv(report_path, sep="\t")
+mapping = pd.read_csv(mapping_path, sep="\t")
+required = {"Name", "Completeness", "Contamination"}
+missing = required - set(report.columns)
+if missing:
+    raise SystemExit(f"CheckM2 report is missing required columns: {sorted(missing)}")
 
-# Apply filters
-passed = df[
-    (df["Completeness"] >= min_comp) &
-    (df["Contamination"] <= max_cont)
-]
-failed = df[~(
-    (df["Completeness"] >= min_comp) &
-    (df["Contamination"] <= max_cont)
-)]
+report["Name"] = report["Name"].astype(str).str.replace(r"\.fna$", "", regex=True)
+merged = mapping.merge(report, on="Name", how="left", validate="one_to_one")
+if merged["Completeness"].isna().any():
+    absent = merged.loc[merged["Completeness"].isna(), "Name"].tolist()
+    raise SystemExit(f"No CheckM2 result matched staged genome(s): {absent[:10]}")
 
-print(f"Passed QC (completeness >={min_comp}%, contamination <={max_cont}%): {len(passed)}")
-print(f"Failed QC: {len(failed)}")
+passed_mask = (merged["Completeness"] >= min_comp) & (merged["Contamination"] <= max_cont)
+passed = merged.loc[passed_mask].copy()
+failed = merged.loc[~passed_mask].copy()
 
-if len(failed) > 0:
-    print("\nFailed genomes:")
-    for _, row in failed.iterrows():
-        print(f"  {row['Name']}: completeness={row['Completeness']:.1f}%, contamination={row['Contamination']:.1f}%")
+passed["original_path"].to_csv(outdir / "genome_list_qc_passed.txt", index=False, header=False)
+failed["original_path"].to_csv(outdir / "genome_list_qc_failed.txt", index=False, header=False)
+merged.to_csv(outdir / "quality_report_with_paths.tsv", sep="\t", index=False)
 
-# Summary stats
-print(f"\nQuality Summary:")
-print(f"  Mean completeness  : {df['Completeness'].mean():.2f}%")
-print(f"  Mean contamination : {df['Contamination'].mean():.2f}%")
-print(f"  Min completeness   : {df['Completeness'].min():.2f}%")
-print(f"  Max contamination  : {df['Contamination'].max():.2f}%")
-
-# Save clean genome list
-# Match genome names back to original paths
-with open(genome_list) as f:
-    all_paths = [l.strip() for l in f if l.strip()]
-
-passed_names = set(passed["Name"].tolist())
-
-clean_paths = []
-for path in all_paths:
-    # genome name = filename without extension
-    name = path.split("/")[-1].replace(".fna","")
-    # also try folder name
-    folder = path.split("/")[-2]
-    if name in passed_names or folder in passed_names:
-        clean_paths.append(path)
-
-with open(f"{outdir}/genome_list_qc_passed.txt", "w") as out:
-    for p in clean_paths:
-        out.write(p + "\n")
-
-print(f"\nClean genome list saved: {outdir}/genome_list_qc_passed.txt")
-print(f"Final genome count: {len(clean_paths)}")
-
-# Save failed list
-with open(f"{outdir}/genome_list_qc_failed.txt", "w") as out:
-    for p in all_paths:
-        name = p.split("/")[-1].replace(".fna","")
-        folder = p.split("/")[-2]
-        if name not in passed_names and folder not in passed_names:
-            out.write(p + "\n")
-
+print(f"Total genomes assessed : {len(merged)}")
+print(f"Passed QC              : {len(passed)}")
+print(f"Failed QC              : {len(failed)}")
+print(f"Mean completeness      : {merged['Completeness'].mean():.2f}%")
+print(f"Mean contamination     : {merged['Contamination'].mean():.2f}%")
 PYEOF
 
-echo ""
-echo "========================================"
-echo "All done: $(date)"
-echo "Report   : ${OUTDIR}/quality_report.tsv"
-echo "Passed   : ${OUTDIR}/genome_list_qc_passed.txt"
-echo "Failed   : ${OUTDIR}/genome_list_qc_failed.txt"
-echo "========================================"
+rm -rf "$STAGE_DIR"
+
+echo "Passed list: ${OUTDIR}/genome_list_qc_passed.txt"
+echo "Failed list: ${OUTDIR}/genome_list_qc_failed.txt"
+echo "Report     : ${OUTDIR}/quality_report_with_paths.tsv"

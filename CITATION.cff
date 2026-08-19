@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use PanGenFlow, please cite this software and the external tools used in your analysis."
+title: "PanGenFlow: reproducible microbial genome acquisition, curation and quality control"
+type: software
+authors:
+  - family-names: Bilal
+    given-names: Muhammad
+repository-code: "https://github.com/mbilal-OU/PanGenFlow"
+url: "https://mbilal-ou.github.io/PanGenFlow/"
+license: MIT
+version: 0.2.0
+date-released: 2026-08-19

@@ -7,7 +7,7 @@
 
 **PanGenFlow** is a reproducible toolkit for acquiring and curating microbial genome collections from NCBI before downstream comparative-genomics analysis.
 
-> **Goal:** turn an NCBI taxon query into a traceable, non-redundant, quality-filtered genome list without hiding what was downloaded, retained, filtered, or left unresolved.
+> **Goal:** turn an NCBI taxon query into a traceable, GCA/GCF-harmonized, quality-filtered genome list without hiding what was downloaded, retained, filtered, or left unresolved.
 
 <p align="center">
   <img src="figures/pangenflow_workflow.svg" alt="PanGenFlow genome acquisition and curation workflow" width="100%">

@@ -49,15 +49,15 @@
 
   <g filter="url(#shadow)"><rect x="1356" y="238" width="176" height="300" rx="24" fill="url(#teal)" stroke="#b7dfd6" stroke-width="2"/></g>
   <circle cx="1444" cy="316" r="43" fill="#dff5ef"/><path d="M1420 316 l16 16 31-38" fill="none" stroke="#087f73" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1444" y="397" text-anchor="middle" class="cardTitle">Analysis-ready</text><text x="1444" y="428" text-anchor="middle" class="cardTitle">genomes</text><text x="1444" y="470" text-anchor="middle" class="small">Non-redundant</text><text x="1444" y="494" text-anchor="middle" class="small">quality-filtered</text><text x="1444" y="518" text-anchor="middle" class="small">traceable dataset</text>
+  <text x="1444" y="397" text-anchor="middle" class="cardTitle">Analysis-ready</text><text x="1444" y="428" text-anchor="middle" class="cardTitle">genomes</text><text x="1444" y="470" text-anchor="middle" class="small">GCA/GCF-harmonized</text><text x="1444" y="494" text-anchor="middle" class="small">quality-filtered</text><text x="1444" y="518" text-anchor="middle" class="small">traceable dataset</text>
 
   <path d="M1160 548 V596 H1040" fill="none" stroke="#d18a19" stroke-width="4" stroke-dasharray="9 8" marker-end="url(#arrow)"/>
-  <g filter="url(#shadow)"><rect x="664" y="585" width="362" height="136" rx="22" fill="url(#amber)" stroke="#efd39c" stroke-width="2"/></g>
-  <rect x="700" y="617" width="76" height="68" rx="10" fill="#fff1cd" stroke="#d18a19" stroke-width="3"/><path d="M714 672 l13-22 12 10 12-29 12 17" fill="none" stroke="#d18a19" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="803" y="627" class="cardTitle">Optional FastANI relatedness check</text><text x="803" y="658" class="body">Use for sufficiently related genome sets.</text><text x="803" y="688" class="small">Missing pairs remain missing; PanGenFlow never invents ANI values.</text>
+  <g filter="url(#shadow)"><rect x="620" y="585" width="420" height="136" rx="22" fill="url(#amber)" stroke="#efd39c" stroke-width="2"/></g>
+  <rect x="650" y="617" width="72" height="68" rx="10" fill="#fff1cd" stroke="#d18a19" stroke-width="3"/><path d="M664 672 l13-22 12 10 12-29 12 17" fill="none" stroke="#d18a19" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="750" y="625" class="cardTitle" fill="#8a5b0c">Optional FastANI</text><text x="750" y="656" class="body">Close-genome relatedness check</text><text x="750" y="686" class="small">Unreported comparisons remain NA.</text>
 
-  <g filter="url(#shadow)"><rect x="1070" y="588" width="462" height="132" rx="22" fill="#f7fafc" stroke="#ccdbe5" stroke-width="2"/></g>
-  <text x="1100" y="625" class="label">OPTIONAL DOWNSTREAM</text><text x="1100" y="660" class="cardTitle">PanPhyloFlow</text><text x="1100" y="690" class="body">Use curated genomes for pangenomics and core-genome phylogeny.</text><path d="M1444 548 V570 H1300 V584" fill="none" stroke="#315b78" stroke-width="4" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)"><rect x="1080" y="588" width="452" height="132" rx="22" fill="#f7fafc" stroke="#ccdbe5" stroke-width="2"/></g>
+  <text x="1112" y="625" class="label">OPTIONAL DOWNSTREAM</text><text x="1112" y="660" class="cardTitle">PanPhyloFlow</text><text x="1112" y="690" class="body">Curated genomes → pangenome + phylogeny</text><path d="M1444 548 V570 H1300 V584" fill="none" stroke="#315b78" stroke-width="4" marker-end="url(#arrow)"/>
 
   <rect x="68" y="754" width="1464" height="40" rx="16" fill="#eef5f8"/><text x="800" y="780" text-anchor="middle" class="small">PanGenFlow prepares genomes; it does not perform pangenome reconstruction itself.</text>
 </svg>

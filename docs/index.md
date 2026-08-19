@@ -1,16 +1,16 @@
 # PanGenFlow documentation
 
-PanGenFlow prepares microbial genome collections for downstream comparative genomics. It focuses on **acquisition, assembly harmonization, metadata, genome-quality filtering, and optional close-genome relatedness checks**.
+PanGenFlow prepares microbial genome collections for downstream comparative genomics. It focuses on **acquisition, GCA/GCF assembly-record reconciliation, metadata, genome-quality filtering, and optional close-genome relatedness checks**.
 
-![PanGenFlow workflow](https://raw.githubusercontent.com/mbilal-OU/PanGenFlow/main/figures/pangenflow_workflow.svg)
+![PanGenFlow workflow](../figures/pangenflow_workflow.svg)
 
-## Learning path
+## Documentation map
 
-1. [Workflow and scientific scope](workflow.md)
-2. [FastANI: when to use it](fastani_scope.md)
-3. [Command cheatsheet](cheatsheet.md)
+- [Workflow and scientific scope](workflow.md)
+- [FastANI: when to use it](fastani_scope.md)
+- [Command cheatsheet](cheatsheet.md)
 
-## Start here
+## Minimal core path
 
 ```bash
 git clone https://github.com/mbilal-OU/PanGenFlow.git
@@ -24,3 +24,5 @@ python scripts/extract_metadata.py genomes/ncbi_dataset/data/assembly_data_repor
 ```
 
 CheckM2 is intentionally kept in a separate environment because it carries its own machine-learning and DIAMOND dependencies.
+
+The historical script name `deduplicate_genomes.py` is retained for compatibility, but its NCBI-specific role is more precisely described as **GCA/GCF assembly-record reconciliation**.

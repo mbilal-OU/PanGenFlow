@@ -36,7 +36,7 @@ It deliberately stops **before** pangenome reconstruction, phylogenomics, AMR an
 
 ## The curation path
 
-### 1 — Acquire
+### 1. Acquire
 
 Download genomes with explicit NCBI Datasets filters.
 
@@ -62,7 +62,7 @@ Useful switches:
 --workers 1-30
 ```
 
-### 2 — Reconcile paired GCA/GCF assembly records
+### 2. Reconcile paired GCA/GCF assembly records
 
 ```bash
 python scripts/deduplicate_genomes.py \
@@ -74,7 +74,7 @@ This step performs **accession reconciliation**, not biological dereplication. W
 
 The script keeps its historical filename, `deduplicate_genomes.py`, for backward compatibility.
 
-### 3 — Capture assembly metadata
+### 3. Capture assembly metadata
 
 ```bash
 python scripts/extract_metadata.py \
@@ -86,7 +86,7 @@ The table includes fields available from the NCBI genome assembly report, such a
 
 PanGenFlow does **not** invent full lineage fields that are absent from the assembly report. Use NCBI taxonomy data when you need family/order/phylum lineage.
 
-### 4 — Apply genome-quality criteria
+### 4. Apply genome-quality criteria
 
 ```bash
 conda activate checkm2
@@ -115,7 +115,7 @@ bash scripts/run_checkm2.sh genome_list_clean.txt checkm2_results/ "$CHECKM2DB" 
 
 Genome files are staged with **symlinks rather than copied**, so large collections do not unnecessarily double disk use.
 
-### Optional — Inspect close-genome relatedness with FastANI
+### Optional: Inspect close-genome relatedness with FastANI
 
 Use this only when the collection is sufficiently related for FastANI to be informative.
 

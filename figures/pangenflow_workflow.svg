@@ -1,63 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="820" viewBox="0 0 1600 820" role="img" aria-labelledby="title desc">
-  <title id="title">PanGenFlow genome acquisition and curation workflow</title>
-  <desc id="desc">NCBI genome download, GCA GCF harmonization, metadata extraction, CheckM2 quality filtering, optional FastANI relatedness checks for close genome sets, and analysis-ready genomes for downstream workflows such as PanPhyloFlow.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="860" viewBox="0 0 1600 860" role="img" aria-labelledby="title desc">
+  <title id="title">PanGenFlow microbial genome curation funnel</title>
+  <desc id="desc">A distinct curation-funnel diagram showing NCBI acquisition, GCA/GCF assembly-record reconciliation, metadata capture, CheckM2 quality filtering, optional FastANI relatedness checks, and curated analysis-ready genomes.</desc>
   <defs>
-    <linearGradient id="header" x1="0" x2="1"><stop offset="0" stop-color="#0b3558"/><stop offset="1" stop-color="#087f73"/></linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef7ff"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
-    <linearGradient id="teal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9faf6"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
-    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#edf9ef"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
-    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7e8"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#08243a" flood-opacity="0.10"/></filter>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#315b78"/></marker>
+    <linearGradient id="top" x1="0" x2="1"><stop offset="0" stop-color="#0b3558"/><stop offset="1" stop-color="#0a8877"/></linearGradient>
+    <linearGradient id="gate1" x1="0" x2="1"><stop offset="0" stop-color="#eaf5ff"/><stop offset="1" stop-color="#d9eefc"/></linearGradient>
+    <linearGradient id="gate2" x1="0" x2="1"><stop offset="0" stop-color="#eaf9f5"/><stop offset="1" stop-color="#d8f1ea"/></linearGradient>
+    <linearGradient id="gate3" x1="0" x2="1"><stop offset="0" stop-color="#f2f6fb"/><stop offset="1" stop-color="#e7eff7"/></linearGradient>
+    <linearGradient id="gate4" x1="0" x2="1"><stop offset="0" stop-color="#eef9ef"/><stop offset="1" stop-color="#dff2e2"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#143247" flood-opacity="0.12"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12 Z" fill="#315b78"/></marker>
     <style>
-      .cardTitle{font:700 24px system-ui,-apple-system,Segoe UI,sans-serif;fill:#123f5f}
-      .body{font:400 18px system-ui,-apple-system,Segoe UI,sans-serif;fill:#466273}
-      .small{font:400 16px system-ui,-apple-system,Segoe UI,sans-serif;fill:#5b7483}
-      .label{font:700 17px system-ui,-apple-system,Segoe UI,sans-serif;fill:#087f73;letter-spacing:.7px}
+      .h1{font:700 48px system-ui,-apple-system,Segoe UI,sans-serif;fill:#fff}
+      .h2{font:700 25px system-ui,-apple-system,Segoe UI,sans-serif;fill:#143f5d}
+      .body{font:400 18px system-ui,-apple-system,Segoe UI,sans-serif;fill:#486577}
+      .small{font:400 16px system-ui,-apple-system,Segoe UI,sans-serif;fill:#5e7685}
+      .label{font:700 16px system-ui,-apple-system,Segoe UI,sans-serif;fill:#0a8877;letter-spacing:1px}
     </style>
   </defs>
-  <rect width="1600" height="820" rx="26" fill="#ffffff"/>
-  <rect x="42" y="38" width="1516" height="118" rx="28" fill="url(#header)"/>
-  <circle cx="112" cy="97" r="42" fill="#ffffff" opacity="0.96"/>
-  <path d="M91 69 C111 83 111 111 91 125 M133 69 C113 83 113 111 133 125" fill="none" stroke="#087f73" stroke-width="5" stroke-linecap="round"/>
-  <path d="M95 76 L129 76 M91 91 L133 91 M91 107 L133 107 M95 122 L129 122" stroke="#0b3558" stroke-width="3.5" stroke-linecap="round"/>
-  <text x="176" y="96" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-weight="750" font-size="51" fill="#ffffff">PanGenFlow</text>
-  <text x="178" y="129" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="21" fill="#dcecf2">Reproducible microbial genome acquisition, curation and quality control</text>
-  <text x="70" y="210" class="label">CORE WORKFLOW</text>
 
-  <g filter="url(#shadow)"><rect x="68" y="238" width="252" height="300" rx="24" fill="url(#blue)" stroke="#bcd8ee" stroke-width="2"/></g>
-  <circle cx="194" cy="307" r="42" fill="#dceeff"/>
-  <path d="M166 307 h56 M194 279 v56 M181 322 l13 13 13-13" fill="none" stroke="#2368a2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="194" y="379" text-anchor="middle" class="cardTitle">1. NCBI Datasets</text>
-  <text x="194" y="414" text-anchor="middle" class="body">Search by taxon or taxid</text><text x="194" y="442" text-anchor="middle" class="body">RefSeq / GenBank filters</text><text x="194" y="470" text-anchor="middle" class="body">FASTA + GFF3 + GBFF</text><text x="194" y="505" text-anchor="middle" class="small">Dehydrated mode for</text><text x="194" y="528" text-anchor="middle" class="small">large genome packages</text>
-  <path d="M330 388 H374" stroke="#315b78" stroke-width="5" marker-end="url(#arrow)"/>
+  <rect width="1600" height="860" rx="26" fill="#ffffff"/>
+  <rect x="40" y="36" width="1520" height="116" rx="28" fill="url(#top)"/>
+  <circle cx="108" cy="94" r="41" fill="#fff" opacity="0.96"/>
+  <path d="M88 67 C108 82 108 108 88 123 M128 67 C108 82 108 108 128 123" fill="none" stroke="#0a8877" stroke-width="5" stroke-linecap="round"/>
+  <path d="M92 75 H124 M88 91 H128 M88 107 H128 M92 121 H124" stroke="#0b3558" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="172" y="92" class="h1">PanGenFlow</text>
+  <text x="174" y="126" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="21" fill="#dcecf2">A curation funnel for defensible microbial genome cohorts</text>
 
-  <g filter="url(#shadow)"><rect x="390" y="238" width="252" height="300" rx="24" fill="url(#teal)" stroke="#b7dfd6" stroke-width="2"/></g>
-  <rect x="480" y="277" width="64" height="76" rx="8" fill="#ffffff" stroke="#087f73" stroke-width="4"/><rect x="497" y="290" width="64" height="76" rx="8" fill="#dff5ef" stroke="#087f73" stroke-width="4"/>
-  <text x="516" y="379" text-anchor="middle" class="cardTitle">2. Harmonize</text><text x="516" y="414" text-anchor="middle" class="body">Pair GCA / GCF records</text><text x="516" y="442" text-anchor="middle" class="body">Prefer current RefSeq</text><text x="516" y="470" text-anchor="middle" class="body">when a pair exists</text><text x="516" y="505" text-anchor="middle" class="small">Preserve GCA-only</text><text x="516" y="528" text-anchor="middle" class="small">assemblies</text>
-  <path d="M652 388 H696" stroke="#315b78" stroke-width="5" marker-end="url(#arrow)"/>
+  <!-- Left input card -->
+  <g filter="url(#shadow)"><rect x="74" y="230" width="310" height="420" rx="26" fill="#f7fbff" stroke="#c9ddeb" stroke-width="2"/></g>
+  <text x="110" y="275" class="label">START</text>
+  <text x="110" y="316" class="h2">NCBI taxon query</text>
+  <text x="110" y="353" class="body">Taxon name or taxid</text>
+  <text x="110" y="385" class="body">Assembly source</text>
+  <text x="110" y="417" class="body">Assembly level</text>
+  <text x="110" y="449" class="body">Included file types</text>
+  <text x="110" y="498" class="small">Large collections can use</text>
+  <text x="110" y="524" class="small">dehydrated + rehydrated mode.</text>
+  <rect x="110" y="562" width="238" height="52" rx="16" fill="#e8f3fb"/>
+  <text x="229" y="594" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="18" font-weight="650" fill="#2368a2">NCBI Datasets</text>
 
-  <g filter="url(#shadow)"><rect x="712" y="238" width="252" height="300" rx="24" fill="url(#blue)" stroke="#bcd8ee" stroke-width="2"/></g>
-  <rect x="794" y="277" width="88" height="78" rx="9" fill="#ffffff" stroke="#2368a2" stroke-width="4"/><path d="M810 295 h55 M810 311 h55 M810 327 h35" stroke="#2368a2" stroke-width="4" stroke-linecap="round"/>
-  <text x="838" y="379" text-anchor="middle" class="cardTitle">3. Metadata</text><text x="838" y="414" text-anchor="middle" class="body">Assembly statistics</text><text x="838" y="442" text-anchor="middle" class="body">Taxid + organism name</text><text x="838" y="470" text-anchor="middle" class="body">Annotation + paired ID</text><text x="838" y="505" text-anchor="middle" class="small">Traceable TSV for</text><text x="838" y="528" text-anchor="middle" class="small">downstream analysis</text>
-  <path d="M974 388 H1018" stroke="#315b78" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M405 440 H490" stroke="#315b78" stroke-width="5" marker-end="url(#arrow)"/>
 
-  <g filter="url(#shadow)"><rect x="1034" y="238" width="252" height="300" rx="24" fill="url(#green)" stroke="#b9dfbf" stroke-width="2"/></g>
-  <path d="M1160 278 l42 15 v32 c0 34-22 53-42 62-20-9-42-28-42-62v-32z" fill="#ddf3e0" stroke="#2b8a4b" stroke-width="4"/><path d="M1139 329 l15 15 29-34" fill="none" stroke="#2b8a4b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1160" y="410" text-anchor="middle" class="cardTitle">4. CheckM2 QC</text><text x="1160" y="445" text-anchor="middle" class="body">Completeness</text><text x="1160" y="473" text-anchor="middle" class="body">Contamination</text><text x="1160" y="505" text-anchor="middle" class="small">Configurable pass / fail</text><text x="1160" y="528" text-anchor="middle" class="small">genome lists</text>
-  <path d="M1296 388 H1340" stroke="#315b78" stroke-width="5" marker-end="url(#arrow)"/>
+  <!-- Funnel -->
+  <text x="760" y="205" text-anchor="middle" class="label">CURATION GATES</text>
 
-  <g filter="url(#shadow)"><rect x="1356" y="238" width="176" height="300" rx="24" fill="url(#teal)" stroke="#b7dfd6" stroke-width="2"/></g>
-  <circle cx="1444" cy="316" r="43" fill="#dff5ef"/><path d="M1420 316 l16 16 31-38" fill="none" stroke="#087f73" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1444" y="397" text-anchor="middle" class="cardTitle">Analysis-ready</text><text x="1444" y="428" text-anchor="middle" class="cardTitle">genomes</text><text x="1444" y="470" text-anchor="middle" class="small">GCA/GCF-harmonized</text><text x="1444" y="494" text-anchor="middle" class="small">quality-filtered</text><text x="1444" y="518" text-anchor="middle" class="small">traceable dataset</text>
+  <g filter="url(#shadow)"><path d="M505 235 H1015 L970 330 H550 Z" fill="url(#gate1)" stroke="#bcd8ee" stroke-width="2"/></g>
+  <text x="610" y="278" class="h2">1  Acquire</text>
+  <text x="610" y="307" class="body">Filtered NCBI genome package + download manifest</text>
 
-  <path d="M1160 548 V596 H1040" fill="none" stroke="#d18a19" stroke-width="4" stroke-dasharray="9 8" marker-end="url(#arrow)"/>
-  <g filter="url(#shadow)"><rect x="620" y="585" width="420" height="136" rx="22" fill="url(#amber)" stroke="#efd39c" stroke-width="2"/></g>
-  <rect x="650" y="617" width="72" height="68" rx="10" fill="#fff1cd" stroke="#d18a19" stroke-width="3"/><path d="M664 672 l13-22 12 10 12-29 12 17" fill="none" stroke="#d18a19" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="750" y="625" class="cardTitle" fill="#8a5b0c">Optional FastANI</text><text x="750" y="656" class="body">Close-genome relatedness check</text><text x="750" y="686" class="small">Unreported comparisons remain NA.</text>
+  <g filter="url(#shadow)"><path d="M550 345 H970 L925 440 H595 Z" fill="url(#gate2)" stroke="#b7dfd6" stroke-width="2"/></g>
+  <text x="640" y="388" class="h2">2  Reconcile</text>
+  <text x="640" y="417" class="body">Pair GCA/GCF assembly records; prefer current RefSeq when available</text>
 
-  <g filter="url(#shadow)"><rect x="1080" y="588" width="452" height="132" rx="22" fill="#f7fafc" stroke="#ccdbe5" stroke-width="2"/></g>
-  <text x="1112" y="625" class="label">OPTIONAL DOWNSTREAM</text><text x="1112" y="660" class="cardTitle">PanPhyloFlow</text><text x="1112" y="690" class="body">Curated genomes → pangenome + phylogeny</text><path d="M1444 548 V570 H1300 V584" fill="none" stroke="#315b78" stroke-width="4" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)"><path d="M595 455 H925 L880 550 H640 Z" fill="url(#gate3)" stroke="#cad8e6" stroke-width="2"/></g>
+  <text x="675" y="498" class="h2">3  Capture metadata</text>
+  <text x="675" y="527" class="body">Assembly statistics, accession pairing, organism and annotation fields</text>
 
-  <rect x="68" y="754" width="1464" height="40" rx="16" fill="#eef5f8"/><text x="800" y="780" text-anchor="middle" class="small">PanGenFlow prepares genomes; it does not perform pangenome reconstruction itself.</text>
+  <g filter="url(#shadow)"><path d="M640 565 H880 L835 660 H685 Z" fill="url(#gate4)" stroke="#b9dfbf" stroke-width="2"/></g>
+  <text x="710" y="608" class="h2">4  Quality filter</text>
+  <text x="710" y="637" class="body">CheckM2 completeness + contamination criteria</text>
+
+  <path d="M835 613 H1030" stroke="#315b78" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <!-- Right output card -->
+  <g filter="url(#shadow)"><rect x="1060" y="230" width="466" height="420" rx="26" fill="#f5fbf8" stroke="#b9dfc7" stroke-width="2"/></g>
+  <text x="1100" y="275" class="label">HANDOFF</text>
+  <text x="1100" y="316" class="h2">Curated genome cohort</text>
+  <text x="1100" y="359" class="body">✓ traceable download settings</text>
+  <text x="1100" y="393" class="body">✓ GCA/GCF-reconciled genome list</text>
+  <text x="1100" y="427" class="body">✓ assembly metadata table</text>
+  <text x="1100" y="461" class="body">✓ QC passed / failed lists</text>
+  <text x="1100" y="495" class="body">✓ original-path mapping</text>
+  <rect x="1100" y="540" width="382" height="76" rx="18" fill="#dff3e5"/>
+  <text x="1291" y="570" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="18" font-weight="700" fill="#2b7f49">Ready for downstream analysis</text>
+  <text x="1291" y="598" text-anchor="middle" class="small">pangenomics · phylogenomics · AMR · custom workflows</text>
+
+  <!-- Optional branch -->
+  <path d="M760 667 V715" stroke="#d18a19" stroke-width="4" stroke-dasharray="9 8" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)"><rect x="494" y="730" width="532" height="88" rx="22" fill="#fff7e8" stroke="#efd39c" stroke-width="2"/></g>
+  <text x="530" y="764" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="20" font-weight="700" fill="#9a650c">Optional FastANI branch</text>
+  <text x="530" y="794" class="small">For sufficiently related genomes only; unreported comparisons remain NA.</text>
+
+  <rect x="1060" y="690" width="466" height="128" rx="22" fill="#f7fafc" stroke="#d3e0e8" stroke-width="2"/>
+  <text x="1096" y="726" class="label">BOUNDARY</text>
+  <text x="1096" y="760" class="body">PanGenFlow prepares the cohort.</text>
+  <text x="1096" y="790" class="body">It does not perform pangenome reconstruction.</text>
 </svg>

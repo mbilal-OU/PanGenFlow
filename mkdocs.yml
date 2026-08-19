@@ -1,0 +1,18 @@
+site_name: PanGenFlow
+site_description: Reproducible microbial genome acquisition, curation and quality control
+site_url: https://mbilal-ou.github.io/PanGenFlow/
+repo_url: https://github.com/mbilal-OU/PanGenFlow
+repo_name: mbilal-OU/PanGenFlow
+nav:
+  - Home: index.md
+  - Workflow & scope: workflow.md
+  - FastANI scope: fastani_scope.md
+  - Cheatsheet: cheatsheet.md
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences

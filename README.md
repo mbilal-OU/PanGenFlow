@@ -265,10 +265,21 @@ conda env create -f environment.yml
 conda activate pangenflow
 ```
 
-CheckM2 is best kept in its own environment:
+CheckM2 is best kept in its own environment. Mamba is faster when available:
 
 ```bash
 mamba create -n checkm2 -c bioconda -c conda-forge checkm2
+```
+
+If Mamba is not installed, the equivalent Conda command works as well:
+
+```bash
+conda create -n checkm2 -c bioconda -c conda-forge checkm2
+```
+
+Then initialize and verify CheckM2:
+
+```bash
 conda activate checkm2
 checkm2 database --download --path ~/checkm2_db/
 checkm2 testrun
